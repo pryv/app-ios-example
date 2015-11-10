@@ -7,16 +7,19 @@
 //
 
 #import "ViewController.h"
-#import <PryvApiKit/PryvApiKit.h>
 #import "PYWebLoginViewController.h"
 
 
-
-@interface ViewController () <PYWebLoginDelegate>
+//
+// Implements PYWebLoginDelegate to be able to use PYWebLoginViewController
+//
+@interface ViewController () <PYWebLoginDelegate, UIAlertViewDelegate>
 
 @end
 
 @implementation ViewController
+
+@synthesize pyConnection;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -29,13 +32,24 @@
 }
 
 - (IBAction)siginButtonPressed: (id) sender  {
+    if (self.pyConnection) { // already logged in -> Propose to log Off
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sign off?"
+                                                        message:@""
+                                                       delegate:self
+                                              cancelButtonTitle:@"Cancel"
+                                              otherButtonTitles:@"OK",nil];
+        [alert show];
+        return;
+    }
+    
+    
     NSLog(@"Signin Started");
     
     
     /** 
      * permissions sets is manage for all Streams
      * In JSON that would do:
-     * [ { 'streamId' : 'ios-example-test', 'level' : 'manage'} ]
+     * [ { 'streamId' : '*', 'level' : 'manage'} ]
      */
     NSArray *permissions = @[ @{ kPYAPIConnectionRequestStreamId : kPYAPIConnectionRequestAllStreams ,
                                      kPYAPIConnectionRequestLevel: kPYAPIConnectionRequestManageLevel}];
@@ -50,6 +64,17 @@
     
 }
 
+
+#pragma mark --Alert Views
+
+- (void)alertView:(UIAlertView *)theAlert clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if (buttonIndex == 1) { // OK
+        self.pyConnection = nil;
+        [self.signinButton setTitle:@"Sign in" forState:UIControlStateNormal];
+    }
+}
+
 #pragma mark --PYWebLoginDelegate
 
 - (UIViewController *)pyWebLoginGetController {
@@ -60,8 +85,14 @@
     return NO;
 };
 
+/**
+ * Called after a successfull sign-in
+ */
 - (void)pyWebLoginSuccess:(PYConnection*)pyAccess {
     NSLog(@"Signin With Success %@ %@", pyAccess.userID, pyAccess.accessToken);
+    self.pyConnection = pyAccess;
+    [self.signinButton setTitle:pyAccess.userID forState:UIControlStateNormal];
+    
 }
 
 - (void)pyWebLoginAborted:(NSString*)reason {

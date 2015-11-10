@@ -7,16 +7,20 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <PryvApiKit/PryvApiKit.h>
 
 
 
 
 @interface ViewController : UIViewController {
-    UIButton IBOutlet *addNoteButton;
-    UITableView IBOutlet *eventTable;
 }
 
+@property (nonatomic, retain) IBOutlet UITableView *eventTable;
+@property (nonatomic, retain) IBOutlet UIButton *addNoteButton;
 @property (nonatomic, retain) IBOutlet UIButton *signinButton;
+
+
+@property (nonatomic, retain) PYConnection *pyConnection;
 
 /**
  *called by Button on the UINavBar
