@@ -37,15 +37,14 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (IBAction)siginButtonPressed: (id) sender  {
+- (IBAction)signinButtonPressed: (id) sender  {
     if (loadingSavedConnection) return;
     if (self.pyConnection) { // already logged in -> Propose to log Off
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sign off?"
+        [[[UIAlertView alloc] initWithTitle:@"Sign off?"
                                                         message:@""
                                                        delegate:self
                                               cancelButtonTitle:@"Cancel"
-                                              otherButtonTitles:@"OK",nil];
-        [alert show];
+                                              otherButtonTitles:@"OK",nil] show];
         return;
     }
     
@@ -56,10 +55,13 @@
     /** 
      * permissions sets is manage for all Streams
      * In JSON that would do:
-     * [ { 'streamId' : '*', 'level' : 'manage'} ]
+     * [ { 'streamId' : 'com.pryv.exampleapp.stream', 
+     *     'defaultName' : 'Pryv iOS Example',
+     *      'level' : 'manage'} ]
      */
-    NSArray *permissions = @[ @{ kPYAPIConnectionRequestStreamId : kPYAPIConnectionRequestAllStreams ,
-                                     kPYAPIConnectionRequestLevel: kPYAPIConnectionRequestManageLevel}];
+    NSArray *permissions = @[ @{ kPYAPIConnectionRequestStreamId : kStreamId ,
+                                 kPYAPIConnectionRequestDefaultStreamName : kStreamDefaultName,
+                                 kPYAPIConnectionRequestLevel: kPYAPIConnectionRequestManageLevel}];
                               
     
     
@@ -87,6 +89,15 @@
     if (self.pyConnection) { // Signed In
         [self.signinButton setTitle:self.pyConnection.userID forState:UIControlStateNormal];
         [[self class] saveConnection:self.pyConnection];
+        
+        [self.pyConnection streamsEnsureFetched:^(NSError *error) {
+            if (error) {
+                NSLog(@"<FAIL> fetching stream at streamSetup");
+                return;
+            }
+        }];
+
+        
     } else { // Signed off
         [self.signinButton setTitle:@"Sign in" forState:UIControlStateNormal];
     }
@@ -100,6 +111,34 @@
     if (buttonIndex == 1) { // OK
         [self setupConnection:nil];
     }
+}
+
+
+
+#pragma maek -- Add Note
+
+- (void)addNoteButtonPressed:(id)sender
+{
+    if (! self.pyConnection) {
+        [[[UIAlertView alloc] initWithTitle:@"Sign in before adding notes"
+                                    message:@""
+                                   delegate:self
+                          cancelButtonTitle:@"OK"
+                          otherButtonTitles:nil] show];
+        return;
+    }
+    
+    PYEvent *event = [[PYEvent alloc] init];
+    event.streamId = kStreamId;
+    event.eventContent = @"Hello World";
+    event.type = @"note/txt";
+    
+    [self.pyConnection eventCreate:event successHandler:^(NSString *newEventId, NSString *stoppedId, PYEvent *event) {
+        NSLog(@"Event created succefully with ID: %@", newEventId);
+    } errorHandler:^(NSError *error) {
+        NSLog(@"Event creation Error: %@", error);
+    }];
+    
 }
 
 #pragma mark --PYWebLoginDelegate

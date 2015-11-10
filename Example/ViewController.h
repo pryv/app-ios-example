@@ -13,6 +13,10 @@
 #define kServiceName @"com.pryv.exampleapp"
 #define kLastUsedUsernameKey @"lastUsedUsernameKey"
 
+// the streamID we will use for tests
+#define kStreamId @"com.pryv.exampleapp.stream"
+#define kStreamDefaultName @"Pryv iOS Example"
+
 
 @interface ViewController : UIViewController {
 }
@@ -24,11 +28,11 @@
 
 @property (nonatomic, retain) PYConnection *pyConnection;
 
-/**
- *called by Button on the UINavBar
- *This is a shortcut to a pushMenu static call
- **/
-- (IBAction)siginButtonPressed:(id)sender;
+
+- (IBAction)signinButtonPressed:(id)sender;
+
+
+- (IBAction)addNoteButtonPressed:(id)sender;
 
 
 @end
