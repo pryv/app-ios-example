@@ -8,7 +8,21 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
+
+
+
+@interface ViewController : UIViewController {
+    UIButton IBOutlet *addNoteButton;
+    UITableView IBOutlet *eventTable;
+}
+
+@property (nonatomic, retain) IBOutlet UIButton *signinButton;
+
+/**
+ *called by Button on the UINavBar
+ *This is a shortcut to a pushMenu static call
+ **/
+- (IBAction)siginButtonPressed:(id)sender;
 
 
 @end
