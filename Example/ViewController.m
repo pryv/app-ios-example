@@ -9,21 +9,27 @@
 #import "ViewController.h"
 #import "PYWebLoginViewController.h"
 
+#import "SSKeychain.h"  // provided by cocoapod : SSKeychain
+
 
 //
 // Implements PYWebLoginDelegate to be able to use PYWebLoginViewController
 //
 @interface ViewController () <PYWebLoginDelegate, UIAlertViewDelegate>
-
+- (void)loadSavedConnection;
++ (void)saveConnection:(PYConnection *)connection;
++ (void)removeConnection:(PYConnection *)connection;
 @end
 
 @implementation ViewController
 
 @synthesize pyConnection;
 
+
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+    [self loadSavedConnection];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -32,6 +38,7 @@
 }
 
 - (IBAction)siginButtonPressed: (id) sender  {
+    if (loadingSavedConnection) return;
     if (self.pyConnection) { // already logged in -> Propose to log Off
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sign off?"
                                                         message:@""
@@ -64,14 +71,34 @@
     
 }
 
+/**
+ * Connection changed (can be nil to remove)
+ */
+- (void)setupConnection:(PYConnection *)connection
+{
+    if (connection == self.pyConnection) return; // nothing to do
+    
+    if (self.pyConnection) {
+        [[self class] removeConnection:self.pyConnection]; // remove from the settings
+    }
+    
+    self.pyConnection = connection;
+    
+    if (self.pyConnection) { // Signed In
+        [self.signinButton setTitle:self.pyConnection.userID forState:UIControlStateNormal];
+        [[self class] saveConnection:self.pyConnection];
+    } else { // Signed off
+        [self.signinButton setTitle:@"Sign in" forState:UIControlStateNormal];
+    }
+}
+
 
 #pragma mark --Alert Views
 
 - (void)alertView:(UIAlertView *)theAlert clickedButtonAtIndex:(NSInteger)buttonIndex
 {
     if (buttonIndex == 1) { // OK
-        self.pyConnection = nil;
-        [self.signinButton setTitle:@"Sign in" forState:UIControlStateNormal];
+        [self setupConnection:nil];
     }
 }
 
@@ -88,11 +115,9 @@
 /**
  * Called after a successfull sign-in
  */
-- (void)pyWebLoginSuccess:(PYConnection*)pyAccess {
-    NSLog(@"Signin With Success %@ %@", pyAccess.userID, pyAccess.accessToken);
-    self.pyConnection = pyAccess;
-    [self.signinButton setTitle:pyAccess.userID forState:UIControlStateNormal];
-    
+- (void)pyWebLoginSuccess:(PYConnection*)pyConn {
+    NSLog(@"Signin With Success %@ %@", pyConn.userID, pyConn.accessToken);
+    [self setupConnection:pyConn];
 }
 
 - (void)pyWebLoginAborted:(NSString*)reason {
@@ -102,6 +127,39 @@
 - (void) pyWebLoginError:(NSError*)error {
     NSLog(@"Signin Error: %@",error);
 }
+
+
+#pragma mark --Utilities to load and save Pryv connections: can be reused in other apps
+
+BOOL loadingSavedConnection = NO;
+
+- (void)loadSavedConnection
+{
+    loadingSavedConnection = YES;
+    NSString *lastUsedUsername = [[NSUserDefaults standardUserDefaults] objectForKey:kLastUsedUsernameKey];
+    if(lastUsedUsername)
+    {
+        NSString *accessToken = [SSKeychain passwordForService:kServiceName account:lastUsedUsername];
+        [self setupConnection:[[PYConnection alloc] initWithUsername:lastUsedUsername
+                                                      andAccessToken:accessToken]];
+        NSLog(@"LoadedSavedConnection: %@", lastUsedUsername);
+    }
+    loadingSavedConnection = NO;
+}
+
++ (void)saveConnection:(PYConnection *)connection
+{
+    [[NSUserDefaults standardUserDefaults] setObject:connection.userID forKey:kLastUsedUsernameKey];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    [SSKeychain setPassword:connection.accessToken forService:kServiceName account:connection.userID];
+}
+
++ (void)removeConnection:(PYConnection *)connection
+{
+    [SSKeychain deletePasswordForService:kServiceName account:connection.userID];
+}
+
+
 
 
 

@@ -9,7 +9,9 @@
 #import <UIKit/UIKit.h>
 #import <PryvApiKit/PryvApiKit.h>
 
-
+// the two following strings are used to retrieve infos from NSUserDefaults
+#define kServiceName @"com.pryv.exampleapp"
+#define kLastUsedUsernameKey @"lastUsedUsernameKey"
 
 
 @interface ViewController : UIViewController {
