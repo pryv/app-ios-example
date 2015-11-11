@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E8BB2A71BF3328700D73F46 /* PryvController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E8BB2A61BF3328700D73F46 /* PryvController.m */; settings = {ASSET_TAGS = (); }; };
 		4ED1F9151AB0630800B5B56E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4ED1F9141AB0630800B5B56E /* main.m */; };
 		4ED1F9181AB0630800B5B56E /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4ED1F9171AB0630800B5B56E /* AppDelegate.m */; };
 		4ED1F91B1AB0630800B5B56E /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4ED1F91A1AB0630800B5B56E /* ViewController.m */; };
@@ -28,6 +29,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4E8BB2A51BF3328700D73F46 /* PryvController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PryvController.h; sourceTree = "<group>"; };
+		4E8BB2A61BF3328700D73F46 /* PryvController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PryvController.m; sourceTree = "<group>"; };
 		4ED1F90F1AB0630800B5B56E /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4ED1F9131AB0630800B5B56E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4ED1F9141AB0630800B5B56E /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -98,6 +101,8 @@
 			children = (
 				4ED1F9161AB0630800B5B56E /* AppDelegate.h */,
 				4ED1F9171AB0630800B5B56E /* AppDelegate.m */,
+				4E8BB2A51BF3328700D73F46 /* PryvController.h */,
+				4E8BB2A61BF3328700D73F46 /* PryvController.m */,
 				4ED1F9191AB0630800B5B56E /* ViewController.h */,
 				4ED1F91A1AB0630800B5B56E /* ViewController.m */,
 				4ED1F91C1AB0630800B5B56E /* Main.storyboard */,
@@ -294,6 +299,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E8BB2A71BF3328700D73F46 /* PryvController.m in Sources */,
 				4ED1F91B1AB0630800B5B56E /* ViewController.m in Sources */,
 				4ED1F9181AB0630800B5B56E /* AppDelegate.m in Sources */,
 				4ED1F9151AB0630800B5B56E /* main.m in Sources */,

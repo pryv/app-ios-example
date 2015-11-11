@@ -7,29 +7,34 @@
 //
 
 #import "ViewController.h"
+
 #import "PYWebLoginViewController.h"
+#import "PryvController.h"
 
-#import "SSKeychain.h"  // provided by cocoapod : SSKeychain
-
+#import <PryvApiKit/PryvApiKit.h>
 
 //
 // Implements PYWebLoginDelegate to be able to use PYWebLoginViewController
 //
 @interface ViewController () <PYWebLoginDelegate, UIAlertViewDelegate>
-- (void)loadSavedConnection;
-+ (void)saveConnection:(PYConnection *)connection;
-+ (void)removeConnection:(PYConnection *)connection;
+- (void)pryvConnectionChange:(NSNotification*)notification;
+- (PYConnection*)pyConn;
 @end
 
 @implementation ViewController
-
-@synthesize pyConnection;
 
 
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    [self loadSavedConnection];
+    /**
+     * Listen to connection changes
+     */
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(pryvConnectionChange:)
+                                                 name:kAppPryvConnectionChange
+                                               object:nil];
+    [self pyConn]; // will trigger loading of existing connection
 }
 
 - (void)didReceiveMemoryWarning {
@@ -37,9 +42,14 @@
     // Dispose of any resources that can be recreated.
 }
 
+/** sugar to get the active Pryv connection **/
+- (PYConnection*)pyConn {
+    return [[PryvController sharedInstance] connection];
+}
+
+
 - (IBAction)signinButtonPressed: (id) sender  {
-    if (loadingSavedConnection) return;
-    if (self.pyConnection) { // already logged in -> Propose to log Off
+    if (self.pyConn) { // already logged in -> Propose to log Off
         [[[UIAlertView alloc] initWithTitle:@"Sign off?"
                                                         message:@""
                                                        delegate:self
@@ -47,9 +57,6 @@
                                               otherButtonTitles:@"OK",nil] show];
         return;
     }
-    
-    
-    NSLog(@"Signin Started");
     
     
     /** 
@@ -76,21 +83,12 @@
 /**
  * Connection changed (can be nil to remove)
  */
-- (void)setupConnection:(PYConnection *)connection
+- (void)pryvConnectionChange:(NSNotification*)notification
 {
-    if (connection == self.pyConnection) return; // nothing to do
-    
-    if (self.pyConnection) {
-        [[self class] removeConnection:self.pyConnection]; // remove from the settings
-    }
-    
-    self.pyConnection = connection;
-    
-    if (self.pyConnection) { // Signed In
-        [self.signinButton setTitle:self.pyConnection.userID forState:UIControlStateNormal];
-        [[self class] saveConnection:self.pyConnection];
+    if (self.pyConn) { // Signed In
+        [self.signinButton setTitle:self.pyConn.userID forState:UIControlStateNormal];
         
-        [self.pyConnection streamsEnsureFetched:^(NSError *error) {
+        [self.pyConn streamsEnsureFetched:^(NSError *error) {
             if (error) {
                 NSLog(@"<FAIL> fetching stream at streamSetup");
                 return;
@@ -109,7 +107,7 @@
 - (void)alertView:(UIAlertView *)theAlert clickedButtonAtIndex:(NSInteger)buttonIndex
 {
     if (buttonIndex == 1) { // OK
-        [self setupConnection:nil];
+        [[PryvController sharedInstance] setConnection:nil];
     }
 }
 
@@ -119,7 +117,7 @@
 
 - (void)addNoteButtonPressed:(id)sender
 {
-    if (! self.pyConnection) {
+    if (! self.pyConn) {
         [[[UIAlertView alloc] initWithTitle:@"Sign in before adding notes"
                                     message:@""
                                    delegate:self
@@ -133,7 +131,8 @@
     event.eventContent = @"Hello World";
     event.type = @"note/txt";
     
-    [self.pyConnection eventCreate:event successHandler:^(NSString *newEventId, NSString *stoppedId, PYEvent *event) {
+    [self.pyConn eventCreate:event
+      successHandler:^(NSString *newEventId, NSString *stoppedId, PYEvent *event) {
         NSLog(@"Event created succefully with ID: %@", newEventId);
     } errorHandler:^(NSError *error) {
         NSLog(@"Event creation Error: %@", error);
@@ -156,7 +155,7 @@
  */
 - (void)pyWebLoginSuccess:(PYConnection*)pyConn {
     NSLog(@"Signin With Success %@ %@", pyConn.userID, pyConn.accessToken);
-    [self setupConnection:pyConn];
+    [[PryvController sharedInstance] setConnection:pyConn];
 }
 
 - (void)pyWebLoginAborted:(NSString*)reason {
@@ -166,40 +165,6 @@
 - (void) pyWebLoginError:(NSError*)error {
     NSLog(@"Signin Error: %@",error);
 }
-
-
-#pragma mark --Utilities to load and save Pryv connections: can be reused in other apps
-
-BOOL loadingSavedConnection = NO;
-
-- (void)loadSavedConnection
-{
-    loadingSavedConnection = YES;
-    NSString *lastUsedUsername = [[NSUserDefaults standardUserDefaults] objectForKey:kLastUsedUsernameKey];
-    if(lastUsedUsername)
-    {
-        NSString *accessToken = [SSKeychain passwordForService:kServiceName account:lastUsedUsername];
-        [self setupConnection:[[PYConnection alloc] initWithUsername:lastUsedUsername
-                                                      andAccessToken:accessToken]];
-        NSLog(@"LoadedSavedConnection: %@", lastUsedUsername);
-    }
-    loadingSavedConnection = NO;
-}
-
-+ (void)saveConnection:(PYConnection *)connection
-{
-    [[NSUserDefaults standardUserDefaults] setObject:connection.userID forKey:kLastUsedUsernameKey];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-    [SSKeychain setPassword:connection.accessToken forService:kServiceName account:connection.userID];
-}
-
-+ (void)removeConnection:(PYConnection *)connection
-{
-    [SSKeychain deletePasswordForService:kServiceName account:connection.userID];
-}
-
-
-
 
 
 @end
