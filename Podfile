@@ -1,4 +1,6 @@
-platform :ios, '7.0'
+platform :ios, '9.0'
 
-pod 'PryvApiKit', :git => 'https://github.com/pryv/sdk-objectivec-apple.git'
-pod 'SSKeychain'
+target 'Example' do
+  pod 'PryvApiKit', :git => 'https://github.com/pryv/lib-cocoa.git', :tag => "0.0.4"
+  pod 'SSKeychain'
+end
