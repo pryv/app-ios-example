@@ -18,6 +18,10 @@ From `Project` folder
 - if needed run `pod update` 
 - open `Example.xcworkspace`  (not Example.xcodeproj)
 
+## Support and warranty
+
+Pryv provides this software for educational and demonstration purposes with no support or warranty.
+
 ## License
 
 [Revised BSD license](https://github.com/pryv/documents/blob/master/license-bsd-revised.md)
